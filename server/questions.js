@@ -26,9 +26,9 @@ getQuestion = (questionID, packetName, callback) => {
     })
 
   });
-}
+};
 
 getQuestion(1, "2013 HSAPQ Tournament 33", result => {console.log(result)})
 
-module.exports = getQuestion;
+module.exports = { getQuestion };
 
