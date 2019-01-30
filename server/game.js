@@ -1,11 +1,10 @@
-const { GameStatus } = require('../config.js');
+const { GameState } = require('../config.js');
 
 const questionModule = require('./questions.js')
 
 const createRoom = (userID, roomID) => {
   return {
     roomID : roomID,
-    stats: {userID: initStats()},
     users : [userID],
     packet : null,
     questionNumber : null,
@@ -19,7 +18,15 @@ const createRoom = (userID, roomID) => {
       powerWords : [],
       questionWords : [],
     },
-    state : GameStatus.LOBBY,
+    gameStatus : {
+      stats: {userID: initStats()},
+      buzzedUser : null,
+    },
+    answerStatus : {
+      buzzTimeout : null,
+      answerTimeout : null,
+    },
+    state : GameState.LOBBY,
     interval : null,
     gameTick : 20,
   }
@@ -45,8 +52,23 @@ const nextQuestion = (room) => {
     room.questionStatus.wordIndex = 0;
     room.questionStatus.wordDelay = 0;
     room.questionStatus.inPower = true;
-    room.state = GameStatus.PLAYING;
+    room.state = GameState.PLAYING;
   });
+};
+
+const processAnswer = (answer, userID, room) => {
+  const answers = answer.split(" ")
+  console.log(room);
+  for (let i in answers) {
+    if (room.questionSource.answer.includes(answers[i])) {
+      room.questionStatus.inPower ? room.gameStatus.stats[userID] += 15 : room.gameStatus.stats[userID] += 10;
+      return true;
+    }
+  }
+  if (room.state === GameState.INTERRUPT) {
+    room.gameStatus.stats[userID] -= 5;
+  }
+  return false
 };
 
 
@@ -57,5 +79,5 @@ const initStats = () => {
 };
 
 
-module.exports = { nextQuestion, enterGame, createRoom, joinRoom };
+module.exports = { processAnswer, nextQuestion, enterGame, createRoom, joinRoom };
 
